@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  *
  * @property int $id
  * @property string $question
+ * @property string $reference_code
  * @property string $answer
  * @method static FlashcardFactory factory(...$parameters)
  * @method static Builder|Flashcard newModelQuery()

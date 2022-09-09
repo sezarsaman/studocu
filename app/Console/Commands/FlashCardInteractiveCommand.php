@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use App\Models\Flashcard;
 use App\Models\TrackingCode;
+use App\Repositories\Contracts\FlashcardRepositoryInterface;
+use App\Repositories\Contracts\TrackingCodeRepositoryInterface;
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -42,6 +44,15 @@ class FlashcardInteractiveCommand extends Command
      | General Functions:
      |--------------------------------------------------------------------------
     */
+
+    public function __construct(
+        public FlashcardRepositoryInterface $flashcardRepository,
+        public TrackingCodeRepositoryInterface $trackingCodeRepository
+    )
+    {
+        parent::__construct();
+    }
+
     /**
      * Execute the console command.
      *
@@ -164,9 +175,7 @@ class FlashcardInteractiveCommand extends Command
 
         $flashcard["answer"] = $this->ask(trans("studocu.create_flashcard_answer"));
 
-        $flashcard["reference_code"] = Str::random(6);
-
-        Flashcard::create($flashcard);
+        $this->flashcardRepository->store($flashcard);
 
         $this->returnToMenu();
     }
@@ -175,11 +184,12 @@ class FlashcardInteractiveCommand extends Command
     {
         $this->createMenuTitle(trans("studocu.menu_2"));
 
-        $flashcards = Flashcard::all(
+        $flashcards = $this->flashcardRepository->all(
             [
                 "reference_code", "question", "answer"
-            ]
-        )->toArray();
+            ],
+            true
+        );
 
         $this->newLine();
 
@@ -209,6 +219,24 @@ class FlashcardInteractiveCommand extends Command
     {
         $this->createMenuTitle(trans("studocu.menu_4"));
 
+        $total = $this
+            ->flashcardRepository
+            ->total();
+
+        $totalPerTrackingCode = $this
+            ->flashcardRepository
+            ->totalPerTrackingCode($this->trackingCode);
+
+        $totalPerTrackingCodeCorrect = $this
+            ->flashcardRepository
+            ->totalPerTrackingCode(
+                $this->trackingCode,
+                [
+                    "column" => "flashcard_tracking_code.status",
+                    "value" => Flashcard::STATUS_CORRECT_ANSWER
+                ]
+            );
+
         $this->table(
             [
                 trans("studocu.stats_total_questions"),
@@ -217,9 +245,9 @@ class FlashcardInteractiveCommand extends Command
             ],
             [
                 [
-                    Flashcard::count(),
-                    round(($this->trackingCode->flashcards()->count() / Flashcard::count()) * 100, 2) . "%",
-                    round(($this->trackingCode->flashcards()->where("flashcard_tracking_code.status", Flashcard::STATUS_CORRECT_ANSWER)->count() / Flashcard::count()) * 100, 2) . "%",
+                    $total,
+                    round(($totalPerTrackingCode / $total) * 100, 2) . "%",
+                    round(($totalPerTrackingCodeCorrect / $total) * 100, 2) . "%",
                 ]
             ],
             "box"
@@ -232,7 +260,7 @@ class FlashcardInteractiveCommand extends Command
     {
         $this->createMenuTitle(trans("studocu.menu_5"));
 
-        $this->trackingCode->flashcards()->sync([]);
+        $this->flashcardRepository->reset($this->trackingCode);
 
         $this->info(trans("studocu.reset_text"));
 
@@ -244,7 +272,9 @@ class FlashcardInteractiveCommand extends Command
     #[NoReturn] private function exit()
     {
         $this->createMenuTitle(trans("studocu.menu_6"));
+
         $this->newLine();
+
         exit(0);
     }
 
@@ -268,13 +298,7 @@ class FlashcardInteractiveCommand extends Command
 
     private function createTrackingCode()
     {
-        $trackingCode = TrackingCode::create(
-            [
-                "tracking_code" => Str::uuid()
-            ]
-        );
-
-        $this->trackingCode = $trackingCode;
+        $this->trackingCode = $this->trackingCodeRepository->store();
     }
 
     private function findTheTrackingCode()
@@ -283,46 +307,14 @@ class FlashcardInteractiveCommand extends Command
             trans("studocu.sign_in_ask_tracking_code")
         );
 
-        $this->trackingCode = TrackingCode::where("tracking_code", $trackingCode)->first();
+        $this->trackingCode = $this->trackingCodeRepository->findTrackingCode($trackingCode);
 
     }
 
     private function showPracticeTable()
     {
-        $answeredFlashcards = [];
 
-        $this
-            ->trackingCode
-            ->flashcards()
-            ->get(
-                [
-                    "reference_code", "flashcard_tracking_code.status"
-                ]
-            )->map(
-                function ($item) use (&$answeredFlashcards) {
-                    $answeredFlashcards[$item->reference_code] = $item->status;
-                }
-            )->toArray();
-
-        $flashcards = Flashcard::get()
-            ->map(function ($flashcard) use ($answeredFlashcards){
-
-                if(
-                    in_array(
-                        $flashcard->reference_code,
-                        array_keys($answeredFlashcards)
-                    )
-                ){
-                    $status = $answeredFlashcards[$flashcard->reference_code];
-                }
-
-                return [
-                    "reference_code" => $flashcard->reference_code,
-                    "question" => $flashcard->question,
-                    "status" => $status ?? Flashcard::STATUS_NOT_ANSWERED
-                ];
-
-            });
+        $flashcards = $this->flashcardRepository->getFlashcardsPerTrackingCodeWithStatus($this->trackingCode);
 
         $this->table(
             [
@@ -334,10 +326,10 @@ class FlashcardInteractiveCommand extends Command
             "box"
         );
 
-        $flashcardsTotal = count($flashcards);
-        $corrects = array_count_values(data_get($flashcards, "*.status"))[Flashcard::STATUS_CORRECT_ANSWER] ?? 0;
-        $percentage = round(($corrects / $flashcardsTotal) * 100, 2);
+        $percentage = $this->flashcardRepository->getProgressPercentage($flashcards);
+
         $this->info(" Your progress is " . $percentage . "% ");
+
         $this->newLine();
     }
 
@@ -351,7 +343,7 @@ class FlashcardInteractiveCommand extends Command
 
         }
 
-        $flashcard = Flashcard::where("reference_code", $referenceCode)->first();
+        $flashcard = $this->flashcardRepository->getFlashcardByReferenceCode($referenceCode);
 
         if (empty($flashcard)) {
 
@@ -361,33 +353,16 @@ class FlashcardInteractiveCommand extends Command
 
         }
 
-        if($this->trackingCode->flashcards()->where("reference_code", $flashcard->reference_code)->count() !== 0){
+        if($this->flashcardRepository->checkIfFlashcardAnsweredCorrectly($this->trackingCode, $flashcard->reference_code)){
 
-            if($this->trackingCode->flashcards()->where("reference_code", $flashcard->reference_code)->get(["flashcard_tracking_code.status"])->first()->status == Flashcard::STATUS_CORRECT_ANSWER){
+            $this->error(trans("studocu.practice_validation_already_answered"));
 
-                $this->error(trans("studocu.practice_validation_already_answered"));
-
-                $this->showQuestion();
-
-            }else{
-
-                $this->trackingCode->flashcards()->detach([$flashcard->id]);
-
-            }
-
+            $this->showQuestion();
         }
 
         $answer = $this->ask("<question>" . $flashcard->question . "</question>");
 
-        $this->trackingCode->flashcards()->attach(
-            [
-                $flashcard->id => [
-                    "status" => ($answer == $flashcard->answer) ? Flashcard::STATUS_CORRECT_ANSWER : Flashcard::STATUS_INCORRECT_ANSWER
-                ]
-            ]
-        );
-
-
+        $this->flashcardRepository->setNewStatusForFlashcard($this->trackingCode, $flashcard, $answer);
 
         $this->practice();
 
