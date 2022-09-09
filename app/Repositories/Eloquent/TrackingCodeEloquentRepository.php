@@ -4,10 +4,21 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\TrackingCode;
 use App\Repositories\Contracts\TrackingCodeRepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 
 class TrackingCodeEloquentRepository implements TrackingCodeRepositoryInterface
 {
+
+    /*
+     |--------------------------------------------------------------------------
+     | Functions:
+     |--------------------------------------------------------------------------
+    */
+    public function all(): Collection
+    {
+        return TrackingCode::all();
+    }
 
     public function store(): TrackingCode
     {
@@ -22,4 +33,12 @@ class TrackingCodeEloquentRepository implements TrackingCodeRepositoryInterface
     {
         return TrackingCode::where("tracking_code", $trackingCode)->first();
     }
+
+    public function storeWithFactory(int $count): void
+    {
+        TrackingCode::factory()
+            ->count($count)
+            ->create();
+    }
+
 }

@@ -2,11 +2,21 @@
 
 namespace Database\Seeders;
 
-use App\Models\TrackingCode;
+use App\Repositories\Contracts\TrackingCodeRepositoryInterface;
 use Illuminate\Database\Seeder;
 
 class TrackingCodeSeeder extends Seeder
 {
+    /*
+     |--------------------------------------------------------------------------
+     | Functions:
+     |--------------------------------------------------------------------------
+    */
+    public function __construct(
+        public TrackingCodeRepositoryInterface $trackingCodeRepository
+    )
+    {
+    }
     /**
      * Run the database seeds.
      *
@@ -15,9 +25,7 @@ class TrackingCodeSeeder extends Seeder
     public function run(): void
     {
 
-        TrackingCode::factory()
-            ->count(10)
-            ->create();
+        $this->trackingCodeRepository->storeWithFactory(10);
 
     }
 

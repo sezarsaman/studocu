@@ -2,11 +2,21 @@
 
 namespace Database\Seeders;
 
-use App\Models\Flashcard;
+use App\Repositories\Contracts\FlashcardRepositoryInterface;
 use Illuminate\Database\Seeder;
 
 class FlashcardSeeder extends Seeder
 {
+    /*
+     |--------------------------------------------------------------------------
+     | Functions:
+     |--------------------------------------------------------------------------
+    */
+    public function __construct(
+        public FlashcardRepositoryInterface $flashcardRepository
+    )
+    {
+    }
     /**
      * Run the database seeds.
      *
@@ -14,8 +24,8 @@ class FlashcardSeeder extends Seeder
      */
     public function run(): void
     {
-        Flashcard::factory()
-            ->count(10)
-            ->create();
+
+        $this->flashcardRepository->storeWithFactory(10);
+
     }
 }

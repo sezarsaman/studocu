@@ -30,4 +30,10 @@ interface FlashcardRepositoryInterface
 
     public function getProgressPercentage(IlluminateCollection $flashcards): string;
 
+    public function getRandomFlashCards(): array;
+
+    public function syncFlashcardsForTrackingCode(TrackingCode $trackingCode, array $flashcards): void;
+
+    public function storeWithFactory(int $count): void;
+
 }

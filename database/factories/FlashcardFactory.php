@@ -18,10 +18,14 @@ class FlashcardFactory extends Factory
      */
     public function definition(): array
     {
+        $firstDigit = fake()->randomDigit();
+
+        $secondDigit = fake()->randomDigit();
+
         return [
             "reference_code" => Str::random(6),
-            "question" => fake()->realTextBetween(20,50),
-            "answer" => fake()->realTextBetween(5, 25)
+            "question" => $firstDigit . " + " . $secondDigit,
+            "answer" => $firstDigit + $secondDigit,
         ];
     }
 }

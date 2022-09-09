@@ -131,6 +131,36 @@ class FlashcardEloquentRepository implements FlashcardRepositoryInterface
         return round(($corrects / $flashcardsTotal) * 100, 2);
     }
 
+    public function getRandomFlashCards(): array
+    {
+        $flashcards = [];
+
+        Flashcard::inRandomOrder()
+            ->take(fake()->randomDigit())
+            ->get()
+            ->map(function ($flashcard) use (&$flashcards){
+                $flashcards[$flashcard->id] = [
+                    "status" => fake()->randomElement(Flashcard::ANSWER_STATUSES)
+                ];
+            });
+
+        return $flashcards;
+    }
+
+    public function syncFlashcardsForTrackingCode(TrackingCode $trackingCode, array $flashcards): void
+    {
+        $trackingCode
+            ->flashcards()
+            ->sync($flashcards);
+    }
+
+    public function storeWithFactory(int $count): void
+    {
+        Flashcard::factory()
+            ->count($count)
+            ->create();
+    }
+
     /*
      |--------------------------------------------------------------------------
      | Helper functions:

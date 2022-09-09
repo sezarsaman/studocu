@@ -2,12 +2,25 @@
 
 namespace Database\Seeders;
 
-use App\Models\Flashcard;
-use App\Models\TrackingCode;
+use App\Repositories\Contracts\FlashcardRepositoryInterface;
+use App\Repositories\Contracts\TrackingCodeRepositoryInterface;
 use Illuminate\Database\Seeder;
 
 class FlashCardTrackingCodeSeeder extends Seeder
 {
+
+    /*
+     |--------------------------------------------------------------------------
+     | Functions:
+     |--------------------------------------------------------------------------
+    */
+    public function __construct(
+        public TrackingCodeRepositoryInterface $trackingCodeRepository,
+        public FlashcardRepositoryInterface $flashcardRepository
+    )
+    {
+    }
+
     /**
      * Run the database seeds.
      *
@@ -15,26 +28,17 @@ class FlashCardTrackingCodeSeeder extends Seeder
      */
     public function run(): void
     {
-        $trackingCodes = TrackingCode::all();
 
-        $flashcards = [];
+        $flashcards = $this->flashcardRepository->getRandomFlashCards();
 
-        Flashcard::inRandomOrder()
-            ->take(fake()->randomDigit())
-            ->get()
-            ->map(function ($flashcard) use (&$flashcards){
-                $flashcards[$flashcard->id] = [
-                    "status" => fake()->randomElement(Flashcard::ANSWER_STATUSES)
-                ];
-            });
+        foreach ($this->trackingCodeRepository->all() as $trackingCode){
 
-        foreach ($trackingCodes as $trackingCode){
-
-            $trackingCode
-                ->flashcards()
-                ->sync($flashcards);
+            $this
+                ->flashcardRepository
+                ->syncFlashcardsForTrackingCode($trackingCode, $flashcards);
 
         }
 
     }
+
 }
