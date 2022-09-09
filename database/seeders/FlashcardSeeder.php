@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\FlashCard;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Flashcard;
 use Illuminate\Database\Seeder;
 
-class FlashCardSeeder extends Seeder
+class FlashcardSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -15,7 +14,7 @@ class FlashCardSeeder extends Seeder
      */
     public function run(): void
     {
-        FlashCard::factory()
+        Flashcard::factory()
             ->count(10)
             ->create();
     }

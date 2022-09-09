@@ -17,20 +17,6 @@ return new class extends Migration
         Schema::create('tracking_codes', function (Blueprint $table) {
             $table->bigIncrements("id");
             $table->string("tracking_code");
-            $table->unsignedBigInteger("flashcard_id");
-            $table->enum("status", TrackingCode::FLASHCARD_ANSWER_STATUSES);
-            $table->timestamps();
-
-            $table->unique(
-                [
-                    "tracking_code",
-                    "flashcard_id"
-                ]
-            );
-
-            $table->foreign('flashcard_id')
-                ->on('flash_cards')
-                ->references('id');
         });
     }
 

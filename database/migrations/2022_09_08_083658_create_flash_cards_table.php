@@ -13,8 +13,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('flash_cards', function (Blueprint $table) {
+        Schema::create('flashcards', function (Blueprint $table) {
             $table->bigIncrements("id");
+            $table->string("reference_code")->unique();
             $table->text("question");
             $table->text("answer");
         });
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('flash_cards');
+        Schema::dropIfExists('flashcards');
     }
 };

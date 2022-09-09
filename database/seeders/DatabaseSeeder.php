@@ -15,8 +15,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(
             [
-                FlashCardSeeder::class,
-                TrackingCodeSeeder::class
+                FlashcardSeeder::class,
+                TrackingCodeSeeder::class,
+                FlashCardTrackingCodeSeeder::class
             ]
         );
     }

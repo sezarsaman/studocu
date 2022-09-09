@@ -18,7 +18,7 @@ class TrackingCodeFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            "tracking_code" => fake()->unique()->uuid
         ];
     }
 }
