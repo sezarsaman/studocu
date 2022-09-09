@@ -7,8 +7,6 @@ use App\Models\TrackingCode;
 use App\Repositories\Contracts\FlashcardRepositoryInterface;
 use App\Repositories\Contracts\TrackingCodeRepositoryInterface;
 use Illuminate\Console\Command;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use JetBrains\PhpStorm\NoReturn;
 
 class FlashcardInteractiveCommand extends Command

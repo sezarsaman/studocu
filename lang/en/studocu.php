@@ -9,9 +9,10 @@ return [
     */
 
     "header" => "StuDocU Practice Arena",
-    "description" => " This is StuDocU interactive learning tool. from the menu \n" .
-        " below you can store a flashcard or list all the flash cards \n" .
-        " or learn, memorize and practice.",
+    "description" => " This is the StuDocU interactive learning tool. From the \n" .
+        " menu you can store a flashcard or list all the flashcards \n" .
+        " or learn, memorize and practice or see your stats. But \n" .
+        " first tell us if you used this panel before?",
 
     /*
      |--------------------------------------------------------------------------
@@ -19,7 +20,7 @@ return [
      |--------------------------------------------------------------------------
     */
     "sign_in_ask_text" => "Do you have a tracking code?",
-    "sign_in_yes_answer" => "Yes, I already practiced before and I have a tracking code.",
+    "sign_in_yes_answer" => "Yes, I already practiced and I want my progress to be continued.",
     "sign_in_no_answer" => "No, I want to start fresh.",
     "sign_in_ask_tracking_code" => "Enter your tracking code:",
     "sign_in_validation" => "We couldn't find anybody with this tracking code!",
