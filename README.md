@@ -44,3 +44,7 @@ User's created questions and answers will be available for all users.
 - Practice
 - Reset
 - See the stats
+
+
+### How to test
+- Run `php artisan test`
